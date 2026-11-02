@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fridge Wiring Editor</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Fridge Wiring Editor</h1>
+  <button id="bWire" title="Wire tool (W): click points / ports, double-click or Enter to finish">✎ Wire</button>
+  <button id="bUndo" title="Undo (Ctrl+Z)">↶</button>
+  <button id="bRedo" title="Redo (Ctrl+Y)">↷</button>
+  <button id="bDup" title="Duplicate (Ctrl+D)">Duplicate</button>
+  <button id="bDel" title="Delete (Del)">Delete</button>
+  <span class="sep"></span>
+  <button id="bZoomOut" title="Zoom out (Ctrl+wheel)">−</button>
+  <button id="bZoom" title="Reset zoom">100%</button>
+  <button id="bZoomIn" title="Zoom in">+</button>
+  <span class="grow"></span>
+  <button id="bExample">Example</button>
+  <button id="bNew">New</button>
+  <button id="bOpen">Open</button>
+  <button id="bSave" title="Save diagram as JSON (Ctrl+S)">Save</button>
+  <label class="chk"><input type="checkbox" id="crop" checked> crop</label>
+  <button id="bSvg">Export SVG</button>
+  <button id="bPng">Export PNG</button>
+  <input type="file" id="fileOpen" accept=".json,application/json" hidden>
+</header>
+
+<aside id="palette">
+  <h2>Components</h2>
+  <div id="palList"></div>
+  <div class="hint">
+    Click or drag a component onto the canvas.<br>
+    <b>Wires:</b> click any port (blue dot) or press <b>W</b>, click to add bends, finish on a port, double-click or <b>Enter</b>. Hold <b>Alt</b> for diagonal segments.<br>
+    Double-click a wire to add a bend, double-click a bend to remove it, drag bends to move them.<br>
+    <b>R</b> rotate · <b>H</b>/<b>V</b> mirror · <b>Del</b> delete<br>
+    <b>Ctrl+D</b> duplicate · <b>Ctrl+C/V</b> copy/paste · <b>Ctrl+Z/Y</b> undo/redo<br>
+    Drag on empty canvas to box-select; <b>Shift+click</b> adds to the selection. Editing a field with several parts selected changes all of them.
+  </div>
+</aside>
+
+<main id="wrap"><svg id="canvas" xmlns="http://www.w3.org/2000/svg"></svg></main>
+
+<aside id="side">
+  <nav class="tabs"><button data-tab="props" class="on">Properties</button><button data-tab="stages">Stages &amp; canvas</button></nav>
+  <section id="tab-props"><div id="propBody"></div></section>
+  <section id="tab-stages" hidden><div id="stageBody"></div></section>
+</aside>
+
+<script src="app.js"></script>
+</body>
+</html>
