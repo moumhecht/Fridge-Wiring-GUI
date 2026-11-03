@@ -111,27 +111,6 @@ const TYPES = {
         `<line x1="0" y1="6" x2="0" y2="10" ${a}/><line x1="-9" y1="10" x2="9" y2="10" ${a}/>` +
         `<line x1="-6" y1="14" x2="6" y2="14" ${a}/><line x1="-3" y1="18" x2="3" y2="18" ${a}/>`; },
   },
-  source: {
-    name: 'Source / LO',
-    defaults: { r: 13, fill: GREEN, noFill: false, stroke: INK, strokeWidth: 1.5 },
-    ports: it => four(it.r), size: it => [2 * it.r, 2 * it.r],
-    draw: it => { const r = it.r, q = r * 0.55;
-      return `<circle r="${r}" ${fillAttr(it)} stroke="${it.stroke}" stroke-width="${it.strokeWidth}"/>` +
-        `<path d="M${f(-q)} 0 q${f(q / 2)} ${f(-q)} ${f(q)} 0 t${f(q)} 0" fill="none" stroke="${it.stroke}" stroke-width="${it.strokeWidth}"/>`; },
-  },
-  mixer: {
-    name: 'Mixer',
-    defaults: { r: 13, fill: '#d3d3d3', noFill: false, stroke: INK, strokeWidth: 1.5 },
-    ports: it => four(it.r), size: it => [2 * it.r, 2 * it.r],
-    draw: it => { const q = f(it.r * 0.707), a = `stroke="${it.stroke}" stroke-width="${it.strokeWidth}"`;
-      return `<circle r="${it.r}" ${fillAttr(it)} ${a}/><line x1="${-q}" y1="${-q}" x2="${q}" y2="${q}" ${a}/><line x1="${-q}" y1="${q}" x2="${q}" y2="${-q}" ${a}/>`; },
-  },
-  dot: {
-    name: 'Junction dot',
-    defaults: { r: 3.5, fill: INK },
-    ports: () => [[0, 0]], size: it => [2 * it.r + 4, 2 * it.r + 4],
-    draw: it => `<circle r="${it.r}" fill="${it.fill}"/>`,
-  },
   image: {
     name: 'Image',
     defaults: { w: 240, h: 200, src: '', opacity: 1 },
@@ -169,9 +148,6 @@ const PRESETS = [
   ['HEMT', 'amp', { size: 56, text: 'HEMT', fontSize: 11 }, { rot: -90 }],
   ['Amplifier', 'amp', { size: 24 }],
   ['50 Ω termination', 'term', {}],
-  ['Source / LO', 'source', {}],
-  ['Mixer', 'mixer', {}],
-  ['Junction dot', 'dot', {}],
   ['Image (chip)', 'image', {}],
   ['Text', 'text', {}],
 ];
@@ -213,7 +189,9 @@ function normalize(o) {
   const d = freshState();
   const s = { ...d, ...o, canvas: { ...d.canvas, ...o.canvas }, stages: { ...d.stages, ...o.stages }, assets: o.assets || {} };
   s.items = (s.items || []).filter(it => TYPES[it.type]).map(it => ({ ...clone(COMMON), ...clone(TYPES[it.type].defaults), ...it }));
-  s.wires = (s.wires || []).map(w => ({ ...wireStyle, ...w }));
+  const ids = new Set(s.items.map(it => it.id));
+  s.wires = (s.wires || []).map(w => ({ ...wireStyle, ...w, pts: (w.pts || []).filter(p => !('id' in p) || ids.has(p.id)) }))
+    .filter(w => w.pts.length > 1);
   return s;
 }
 function afterLoad() { sel = sel.filter(k => objOf(k)); draft = null; syncStagePanel(); drawProps(); draw(); }
