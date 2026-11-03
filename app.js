@@ -166,7 +166,7 @@ const PRESETS = [
   ['Double-junction circ.', 'djcirc', {}],
   ['Directional coupler', 'coupler', {}],
   ['TWPA', 'amp', { size: 36 }, { label: 'TWPA' }],
-  ['HEMT', 'amp', { size: 56, text: 'HEMT\n4-8GHz' }, { rot: -90 }],
+  ['HEMT', 'amp', { size: 56, text: 'HEMT', fontSize: 11 }, { rot: -90 }],
   ['Amplifier', 'amp', { size: 24 }],
   ['50 Ω termination', 'term', {}],
   ['Source / LO', 'source', {}],
