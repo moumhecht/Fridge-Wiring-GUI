@@ -29,7 +29,14 @@ function arrowArc(cx, cy, R, col, sw) {
 }
 const circ = (cx, it) => `<circle cx="${cx}" r="${it.r}" ${fillAttr(it)} stroke="${it.stroke}" stroke-width="${it.strokeWidth}"/>` +
   arrowArc(cx, 0, it.r * 0.55, it.stroke, it.strokeWidth);
-const four = r => [[-r, 0], [r, 0], [0, -r], [0, r]];
+// square-bodied circulator; `tabs` are x positions of filled squares on top (terminated ports)
+function squareCirc(it, w, tabs) {
+  const s = it.s, t = s * 0.3, c = it.stroke, sw = it.strokeWidth;
+  return `<rect x="${-w / 2}" y="${-s / 2}" width="${w}" height="${s}" ${fillAttr(it)} stroke="${c}" stroke-width="${sw}"/>` +
+    tabs.map(x => `<rect x="${f(x - t / 2)}" y="${f(-s / 2 - t)}" width="${f(t)}" height="${f(t)}" fill="${c}" stroke="${c}" stroke-width="${sw}"/>`).join('') +
+    arrowArc(0, 0, s * 0.27, c, sw);
+}
+const four = r =>[[-r, 0], [r, 0], [0, -r], [0, r]];
 
 // Each type: defaults (editable props), ports(it) in local coords, size(it) -> [w,h],
 // draw(it, live) -> SVG in local coords, optional textOff(it) for the inner text anchor.
@@ -45,35 +52,50 @@ const TYPES = {
   },
   circulator: {
     name: 'Circulator',
-    defaults: { r: 18, fill: '#ffffff', noFill: false, stroke: PURPLE, strokeWidth: 2 },
+    defaults: { r: 18, fill: '#ffffff', noFill: false, stroke: INK, strokeWidth: 2 },
     ports: it => four(it.r), size: it => [2 * it.r, 2 * it.r],
     draw: it => circ(0, it),
   },
+  circ2: {
+    name: '2-port circulator (isolator)',
+    defaults: { s: 30, fill: '#ffffff', noFill: false, stroke: INK, strokeWidth: 1.5 },
+    ports: it => [[-it.s / 2, 0], [it.s / 2, 0]],
+    size: it => [it.s, it.s * 1.5],
+    draw: it => squareCirc(it, it.s, [0]),
+  },
+  circ3: {
+    name: '3-port circulator',
+    defaults: { s: 30, fill: '#ffffff', noFill: false, stroke: INK, strokeWidth: 1.5 },
+    ports: it => [[-it.s / 2, 0], [it.s / 2, 0], [0, it.s / 2], [0, -it.s / 2]],
+    size: it => [it.s, it.s],
+    draw: it => squareCirc(it, it.s, []),
+  },
   djcirc: {
     name: 'Double-junction circulator',
-    defaults: { r: 16, fill: '#ffffff', noFill: false, stroke: PURPLE, strokeWidth: 2 },
-    ports: it => { const r = it.r; return [[-2 * r, 0], [2 * r, 0], [-r, r], [r, r], [-r, -r], [r, -r]]; },
-    size: it => [4 * it.r, 2 * it.r],
-    draw: it => circ(-it.r, it) + circ(it.r, it),
+    defaults: { s: 30, fill: '#ffffff', noFill: false, stroke: INK, strokeWidth: 1.5 },
+    ports: it => [[-it.s, 0], [it.s, 0]],
+    size: it => [2 * it.s, it.s * 1.5],
+    draw: it => squareCirc(it, 2 * it.s, [-it.s / 2, it.s / 2]),
   },
   coupler: {
     name: 'Directional coupler',
-    defaults: { w: 46, h: 28, fill: '#ffffff', noFill: false, stroke: PURPLE, strokeWidth: 1.5 },
+    defaults: { w: 46, h: 28, fill: '#ffffff', noFill: false, stroke: INK, strokeWidth: 1.5 },
     ports: it => [[-it.w / 2, 0], [it.w / 2, 0], [-it.w / 2 + 9, -it.h / 2 - 9], [0, it.h / 2]],
     size: it => [it.w, it.h + 18],
     draw: it => {
-      const w = it.w, h = it.h, tx = -w / 2 + 9, sw = it.strokeWidth, c = it.stroke, ay = h / 4, ax = w / 2 - 5;
+      // coupled arm curves down from the tab and meets the through line at the arrow tip
+      const w = it.w, h = it.h, tx = -w / 2 + 9, sw = it.strokeWidth, c = it.stroke, ax = w / 2 - 5;
       return `<rect x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" ${fillAttr(it)} stroke="${c}" stroke-width="${sw}"/>` +
         `<rect x="${tx - 4.5}" y="${-h / 2 - 9}" width="9" height="9" fill="${c}" stroke="${c}" stroke-width="${sw}"/>` +
         `<line x1="${-w / 2}" y1="0" x2="${w / 2}" y2="0" stroke="${c}" stroke-width="${sw}"/>` +
-        `<path d="M${tx} ${-h / 2} Q${tx} ${ay} ${ax - 7} ${ay}" fill="none" stroke="${c}" stroke-width="${sw}"/>` +
-        `<polygon points="${ax},${ay} ${ax - 8},${ay - 4} ${ax - 8},${ay + 4}" fill="${c}"/>`;
+        `<path d="M${tx} ${-h / 2} Q${tx} ${-h / 4} ${f(ax - 10)} ${-3}" fill="none" stroke="${c}" stroke-width="${sw}"/>` +
+        `<polygon points="${ax},0 ${ax - 9},${-6} ${ax - 6},${1}" fill="${c}"/>`;
     },
   },
   amp: {
     name: 'Amplifier',
-    defaults: { size: 40, fill: PURPLE, noFill: false, stroke: PURPLE, strokeWidth: 1.5,
-                text: '', textColor: '#ffffff', fontSize: 10, bold: false, upright: true },
+    defaults: { size: 40, fill: '#ffffff', noFill: false, stroke: INK, strokeWidth: 1.5,
+                text: '', textColor: INK, fontSize: 10, bold: false, upright: true },
     ports: it => [[-it.size / 2, 0], [it.size / 2, 0]],
     size: it => [it.size, it.size],
     textOff: it => [-it.size / 6, 0],
@@ -139,12 +161,13 @@ const PRESETS = [
   ['Low-pass filter', 'box', { fill: BLUE, stroke: '#0b4a66', text: 'K&L' }],
   ['Box / device', 'box', { w: 100, h: 60, r: 4, fill: '#d3d3d3', stroke: '#444444', text: 'Device', textColor: INK, fontSize: 14 }],
   ['Title box', 'box', { w: 130, h: 86, r: 0, fill: PURPLE, stroke: PURPLE, text: 'Fridge\nDate\nCooldown', fontSize: 15, align: 'start' }],
-  ['Circulator', 'circulator', {}],
+  ['2-port circulator', 'circ2', {}],
+  ['3-port circulator', 'circ3', {}],
   ['Double-junction circ.', 'djcirc', {}],
   ['Directional coupler', 'coupler', {}],
   ['TWPA', 'amp', { size: 36 }, { label: 'TWPA' }],
   ['HEMT', 'amp', { size: 56, text: 'HEMT\n4-8GHz' }, { rot: -90 }],
-  ['Amplifier', 'amp', { size: 24, fill: '#8a8f98', stroke: '#444444' }],
+  ['Amplifier', 'amp', { size: 24 }],
   ['50 Ω termination', 'term', {}],
   ['Source / LO', 'source', {}],
   ['Mixer', 'mixer', {}],
@@ -167,7 +190,7 @@ function makeItem(preset, x, y, id) {
 function freshState() {
   return {
     canvas: { w: 1300, h: 760, bg: '#ffffff', grid: true },
-    stages: { style: 'nested', list: '70K\n4K\n1K\n100mK\n10mK', x: 110, y: 40, w: 1150, h: 690,
+    stages: { style: 'dashed', list: '70K\n4K\n1K\n100mK\n10mK', x: 110, y: 40, w: 1150, h: 690,
               spacing: 48, inset: 16, radius: 48, color: INK, strokeWidth: 1.5,
               labelSize: 16, labelColor: INK, labelX: 12, leaders: true },
     items: [], wires: [], assets: {}, nextId: 1,
@@ -254,7 +277,13 @@ function stagesSvg() {
   const dash = `stroke="${S.color}" stroke-width="1.2" stroke-dasharray="6 4"`;
   const lbl = (x, y, t, a) => textBlock(x, y, t, S.labelSize, S.labelColor, false, a || 'start');
   let s = '';
-  if (S.style === 'nested' || S.style === 'lines') {
+  if (S.style === 'dashed') {
+    list.forEach((g, i) => {
+      const y = S.y + (g.v ?? i * S.spacing), tx = S.labelX + g.name.length * S.labelSize * 0.58 + 6;
+      s += lbl(S.labelX, y, g.name) +
+        `<line x1="${f(tx)}" y1="${y}" x2="${S.x + S.w}" y2="${y}" stroke="${S.color}" stroke-width="${S.strokeWidth}" stroke-dasharray="7 5"/>`;
+    });
+  } else if (S.style === 'nested' || S.style === 'lines') {
     list.forEach((g, i) => {
       const top = S.y + (g.v ?? i * S.spacing);
       const x0 = S.style === 'nested' ? S.x + i * S.inset : S.x;
@@ -480,7 +509,7 @@ function act(a) {
 // ---------------------------------------------------------------- stages & canvas panel
 
 const STAGE_FIELDS = {
-  style: ['Stage style', 'sel', [['nested', 'Nested cans'], ['lines', 'Horizontal plates'], ['columns', 'Columns (left → right)'], ['none', 'None']]],
+  style: ['Stage style', 'sel', [['dashed', 'Dashed lines'], ['nested', 'Nested cans'], ['lines', 'Horizontal plates'], ['columns', 'Columns (left → right)'], ['none', 'None']]],
   list: ['Stages, one per line. Optional "| offset" sets the top offset (or column width)', 'area'],
   x: ['X', 'num'], y: ['Y', 'num'], w: ['Width', 'num'], h: ['Height', 'num'],
   spacing: ['Spacing', 'num'], inset: ['Nest inset', 'num'], radius: ['Corner radius', 'num'],
@@ -800,8 +829,9 @@ function buildExample() {
   A('IR filter', 1140, 262);
   A('Low-pass filter', 1140, 302, { text: 'VLF 8.4' });
   A('Low-pass filter', 1140, 342);
-  A('Circulator', 1140, 400); A('Circulator', 1140, 450);
-  A('Circulator', 860, 520);
+  A('2-port circulator', 1140, 400, { rot: 90 }); A('2-port circulator', 1140, 450, { rot: 90 });
+  A('3-port circulator', 860, 520);
+  A('Double-junction circ.', 920, 520);
   A('TWPA', 1070, 520, { label: 'TWPA\n1061', labelDy: 36 });
   W([{ id: dev.id, port: 1 }, { x: 1140, y: 520 }, { id: hemt.id, port: 0 }], PURPLE);
   A('Title box', 90, 680, { text: 'Bashful\nNOV 04 2025\nCooldown' });
@@ -809,7 +839,7 @@ function buildExample() {
 
 // ---------------------------------------------------------------- boot
 
-setInterval(() => { try { localStorage.setItem('fridgeWiring.v2', JSON.stringify(state)); } catch {} }, 3000);
-try { const s = localStorage.getItem('fridgeWiring.v2'); if (s) state = normalize(JSON.parse(s)); else buildExample(); }
+setInterval(() => { try { localStorage.setItem('fridgeWiring.v3', JSON.stringify(state)); } catch {} }, 3000);
+try { const s = localStorage.getItem('fridgeWiring.v3'); if (s) state = normalize(JSON.parse(s)); else buildExample(); }
 catch { buildExample(); }
 syncStagePanel(); drawProps(); draw();
