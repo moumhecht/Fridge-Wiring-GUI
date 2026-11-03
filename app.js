@@ -420,6 +420,7 @@ function fieldHtml(k, v, attr = 'data-k', def = FIELDS[k]) {
     case 'bool': return `<label class="f bool"><input type="checkbox" ${attr}="${k}" ${v ? 'checked' : ''}>${label}</label>`;
     case 'sel': return `<label class="f"><span>${label}</span><select ${attr}="${k}">${opts.map(([o, t]) => `<option value="${o}" ${o === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>`;
     case 'color': return `<div class="f wide"><span>${label}</span><div class="crow"><input type="color" ${attr}="${k}" value="${v}">` +
+      `<input type="text" class="hex" data-hex="${k}" value="${v}" maxlength="7" spellcheck="false" title="Hex code, e.g. #9b2a8f or #fff">` +
       `<div class="sw">${SWATCHES.map(c => `<button class="swb" title="${c}" data-sw="${c}" data-for="${k}" style="background:${c}"></button>`).join('')}</div></div></div>`;
     case 'img': return `<div class="f wide"><span>${label}</span><input type="file" accept="image/*" data-img></div>`;
   }
@@ -461,7 +462,23 @@ function drawProps() {
 
 function bindFields(root, attr, apply) {
   const pushed = new WeakSet();
-  const set = (el, v) => { if (!pushed.has(el)) { pushHistory(); pushed.add(el); } apply(el.getAttribute(attr), v); };
+  const set = (el, v) => {
+    if (!pushed.has(el)) { pushHistory(); pushed.add(el); }
+    const k = el.getAttribute(attr);
+    apply(k, v);
+    const hex = el.type === 'color' && root.querySelector(`[data-hex="${k}"]`);
+    if (hex && document.activeElement !== hex) hex.value = v;
+  };
+  root.querySelectorAll('[data-hex]').forEach(hex => {
+    const inp = root.querySelector(`[${attr}="${hex.dataset.hex}"]`);
+    hex.addEventListener('input', () => {
+      let v = hex.value.trim().replace(/^#?/, '#').toLowerCase();
+      if (/^#[0-9a-f]{3}$/.test(v)) v = '#' + [...v.slice(1)].map(c => c + c).join('');
+      if (/^#[0-9a-f]{6}$/.test(v)) { inp.value = v; set(inp, v); }
+    });
+    hex.addEventListener('blur', () => { hex.value = inp.value; });
+    hex.addEventListener('keydown', e => { if (e.key === 'Enter') hex.blur(); });
+  });
   root.querySelectorAll(`[${attr}]`).forEach(el => {
     const ev = el.type === 'checkbox' || el.tagName === 'SELECT' ? 'change' : 'input';
     el.addEventListener(ev, () => {

@@ -48,3 +48,5 @@ h2 { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(-
 .band { fill:rgba(47,111,222,.08); stroke:var(--accent); stroke-dasharray:4 3; }
 .item { cursor:move; }
 .btnrow.align button { flex:1 0 30%; }
+.f .crow input.hex { width:72px; flex:none; font:12px ui-monospace, Consolas, monospace; padding:4px 5px; border:1px solid var(--line); border-radius:4px; }
+.f.wide .crow { flex-wrap:wrap; }
