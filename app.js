@@ -137,7 +137,6 @@ const TYPES = {
 const PRESETS = [
   ['Text box', 'box', {}],
   ['Box / device', 'box', { w: 100, h: 60, r: 4, fill: '#d3d3d3', stroke: '#444444', text: 'Device', textColor: INK, fontSize: 14 }],
-  ['Title box', 'box', { w: 130, h: 86, r: 0, fill: PURPLE, stroke: PURPLE, text: 'Fridge\nDate\nCooldown', textColor: '#ffffff', fontSize: 15, align: 'start' }],
   ['2-port circulator', 'circ2', {}],
   ['3-port circulator', 'circ3', {}],
   ['Double-junction circ.', 'djcirc', {}],
@@ -880,7 +879,8 @@ function buildExample() {
   A('Double-junction circ.', 920, 520);
   A('TWPA', 1070, 520, { label: 'TWPA\n1061', labelDy: 36 });
   W([{ id: dev.id, port: 1 }, { x: 1140, y: 520 }, { id: hemt.id, port: 0 }], PURPLE);
-  A('Title box', 90, 680, { text: 'Bashful\nNOV 04 2025\nCooldown' });
+  A('Text box', 90, 680, { w: 130, h: 86, r: 0, fill: PURPLE, stroke: PURPLE, textColor: '#ffffff', fontSize: 15, align: 'start',
+    text: 'Bashful\nNOV 04 2025\nCooldown' });
 }
 
 // ---------------------------------------------------------------- boot

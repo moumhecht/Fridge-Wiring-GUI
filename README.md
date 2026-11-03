@@ -3,7 +3,7 @@
 A browser-based editor for dilution-refrigerator wiring diagrams. Runs entirely client-side, so it works on GitHub Pages or by opening `index.html` directly.
 
 ## Components
-Text boxes (for attenuators, IR filters, K&L / VLF low-pass filters or anything else), device boxes, title boxes, circulators, double-junction circulators, directional couplers, TWPAs, HEMTs, generic amplifiers, 50 Ω terminations, embedded images (e.g. chip layouts) and free text.
+Text boxes (for attenuators, IR filters, K&L / VLF low-pass filters or anything else), device boxes, circulators, double-junction circulators, directional couplers, TWPAs, HEMTs, generic amplifiers, 50 Ω terminations, embedded images (e.g. chip layouts) and free text.
 
 Every part can be relabelled, recoloured, rotated and mirrored horizontally/vertically.
 
