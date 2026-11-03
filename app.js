@@ -43,8 +43,8 @@ const four = r =>[[-r, 0], [r, 0], [0, -r], [0, r]];
 const TYPES = {
   box: {
     name: 'Box',
-    defaults: { w: 60, h: 28, r: 6, fill: GREEN, noFill: false, stroke: '#1f4d12', strokeWidth: 1.5,
-                text: '10 dB', textColor: '#ffffff', fontSize: 12, bold: false, align: 'middle', upright: false },
+    defaults: { w: 60, h: 28, r: 6, fill: '#ffffff', noFill: false, stroke: INK, strokeWidth: 1.5,
+                text: '', textColor: INK, fontSize: 12, bold: false, align: 'middle', upright: false },
     ports: it => [[-it.w / 2, 0], [it.w / 2, 0], [0, -it.h / 2], [0, it.h / 2]],
     size: it => [it.w, it.h],
     textOff: it => it.align === 'start' ? [-it.w / 2 + 8, 0] : [0, 0],
@@ -135,11 +135,9 @@ const TYPES = {
 
 // Palette entries: [name, type, type-prop overrides, common overrides]
 const PRESETS = [
-  ['Attenuator', 'box', {}],
-  ['IR filter', 'box', { w: 74, h: 26, fill: PURPLE, stroke: '#3d0f38', text: 'IR Filter' }],
-  ['Low-pass filter', 'box', { fill: BLUE, stroke: '#0b4a66', text: 'K&L' }],
+  ['Text box', 'box', {}],
   ['Box / device', 'box', { w: 100, h: 60, r: 4, fill: '#d3d3d3', stroke: '#444444', text: 'Device', textColor: INK, fontSize: 14 }],
-  ['Title box', 'box', { w: 130, h: 86, r: 0, fill: PURPLE, stroke: PURPLE, text: 'Fridge\nDate\nCooldown', fontSize: 15, align: 'start' }],
+  ['Title box', 'box', { w: 130, h: 86, r: 0, fill: PURPLE, stroke: PURPLE, text: 'Fridge\nDate\nCooldown', textColor: '#ffffff', fontSize: 15, align: 'start' }],
   ['2-port circulator', 'circ2', {}],
   ['3-port circulator', 'circ3', {}],
   ['Double-junction circ.', 'djcirc', {}],
@@ -853,27 +851,30 @@ function buildStarter() {
 function buildExample() {
   state = freshState();
   const A = (name, x, y, o = {}) => { const it = makeItem(name, x, y, state.nextId++); Object.assign(it, o); state.items.push(it); return it; };
+  const ATT = { fill: GREEN, stroke: '#1f4d12', textColor: '#ffffff', text: '10 dB' };
+  const IR = { w: 74, h: 26, fill: PURPLE, stroke: '#3d0f38', textColor: '#ffffff', text: 'IR Filter' };
+  const LP = { fill: BLUE, stroke: '#0b4a66', textColor: '#ffffff', text: 'K&L' };
   const W = (pts, color, o = {}) => state.wires.push({ id: state.nextId++, ...clone(wireStyle), pts, color, ...o });
   const bands = [64, 112, 160, 208];
   const column = (x, name, extra) => {
     A('Text', x, 22, { text: name, fontSize: 15 });
-    bands.forEach(y => A('Attenuator', x, y));
-    A('IR filter', x, 262);
-    extra.forEach(([p, o], i) => A(p, x, 302 + 40 * i, o));
+    bands.forEach(y => A('Text box', x, y, ATT));
+    A('Text box', x, 262, IR);
+    extra.forEach(([o], i) => A('Text box', x, 302 + 40 * i, o));
   };
   const dev = A('Box / device', 640, 520, { w: 220, h: 160, text: 'Device\n(drop a chip image here)', fontSize: 13 });
-  column(300, 'IN 1', [['Attenuator', { text: '20 dB' }], ['Low-pass filter', {}]]);
+  column(300, 'IN 1', [[{ ...ATT, text: '20 dB' }], [LP]]);
   W([{ x: 300, y: 32 }, { x: 300, y: 520 }, { id: dev.id, port: 0 }], PURPLE);
-  column(420, 'IN 20', [['Low-pass filter', {}]]);
+  column(420, 'IN 20', [[LP]]);
   W([{ x: 420, y: 32 }, { x: 420, y: 640 }, { x: 640, y: 640 }, { id: dev.id, port: 3 }], YELLOW);
-  column(980, 'IN 19', [['Low-pass filter', { text: 'VLF 8.4' }]]);
+  column(980, 'IN 19', [[{ ...LP, text: 'VLF 8.4' }]]);
   const cp = A('Directional coupler', 994, 520);
   W([{ x: 980, y: 32 }, { id: cp.id, port: 2 }], INK);
   A('Text', 1140, 16, { text: 'OUT 1', fontSize: 15 });
   const hemt = A('HEMT', 1140, 62, { size: 48 });
-  A('IR filter', 1140, 262);
-  A('Low-pass filter', 1140, 302, { text: 'VLF 8.4' });
-  A('Low-pass filter', 1140, 342);
+  A('Text box', 1140, 262, IR);
+  A('Text box', 1140, 302, { ...LP, text: 'VLF 8.4' });
+  A('Text box', 1140, 342, LP);
   A('2-port circulator', 1140, 400, { rot: 90 }); A('2-port circulator', 1140, 450, { rot: 90 });
   A('3-port circulator', 860, 520);
   A('Double-junction circ.', 920, 520);
