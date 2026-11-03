@@ -443,6 +443,8 @@ function drawProps() {
     h = `<div class="ptitle">${TYPES[prim.type].name}${n > 1 ? ` <small>(${n} selected)</small>` : ''}</div>` +
       `<div class="btnrow"><button data-act="rotL">⟲ 90°</button><button data-act="rotR">⟳ 90°</button>` +
       `<button data-act="fx" class="${prim.fx ? 'on' : ''}">Mirror H</button><button data-act="fy" class="${prim.fy ? 'on' : ''}">Mirror V</button></div>` +
+      (items.length > 1 ? `<h2>Align</h2><div class="btnrow align">` +
+        ALIGN.map(([a, t, tip]) => `<button data-act="${a}" title="${tip}">${t}</button>`).join('') + '</div>' : '') +
       `<div class="fields">${keys.map(k => fieldHtml(k, prim[k])).join('')}</div>` +
       `<div class="btnrow" style="margin-top:12px"><button data-act="front">Bring to front</button><button data-act="back">Send to back</button></div>`;
   }
@@ -490,6 +492,39 @@ function loadImage(file) {
   rd.readAsDataURL(file);
 }
 
+const ALIGN = [
+  ['alL', '⇤ Left', 'Align left edges'], ['alC', '↔ Center', 'Align horizontal centers'], ['alR', 'Right ⇥', 'Align right edges'],
+  ['alT', '⤒ Top', 'Align top edges'], ['alM', '↕ Middle', 'Align vertical centers'], ['alB', '⤓ Bottom', 'Align bottom edges'],
+  ['distH', '⋯ Space H', 'Distribute evenly left to right'], ['distV', '⋮ Space V', 'Distribute evenly top to bottom'],
+];
+
+// world-space half extents of a part, accounting for rotation
+function halfExtents(it) {
+  const [w, h] = TYPES[it.type].size(it), a = it.rot * D, c = Math.abs(Math.cos(a)), s = Math.abs(Math.sin(a));
+  return [(w * c + h * s) / 2, (w * s + h * c) / 2];
+}
+
+function alignItems(items, a) {
+  const E = items.map(it => { const [hx, hy] = halfExtents(it); return { it, hx, hy }; });
+  const min = k => Math.min(...E.map(k)), max = k => Math.max(...E.map(k));
+  const left = min(e => e.it.x - e.hx), right = max(e => e.it.x + e.hx);
+  const top = min(e => e.it.y - e.hy), bottom = max(e => e.it.y + e.hy);
+  for (const e of E) {
+    if (a === 'alL') e.it.x = left + e.hx;
+    if (a === 'alR') e.it.x = right - e.hx;
+    if (a === 'alC') e.it.x = (left + right) / 2;
+    if (a === 'alT') e.it.y = top + e.hy;
+    if (a === 'alB') e.it.y = bottom - e.hy;
+    if (a === 'alM') e.it.y = (top + bottom) / 2;
+  }
+  if ((a === 'distH' || a === 'distV') && E.length > 2) {
+    const k = a === 'distH' ? 'x' : 'y';
+    E.sort((p, q) => p.it[k] - q.it[k]);
+    const first = E[0].it[k], step = (E[E.length - 1].it[k] - first) / (E.length - 1);
+    E.forEach((e, i) => { e.it[k] = first + i * step; });
+  }
+}
+
 function act(a) {
   const items = selItems(); if (!items.length) return;
   pushHistory();
@@ -499,6 +534,7 @@ function act(a) {
     if (a === 'fx') it.fx = !it.fx;
     if (a === 'fy') it.fy = !it.fy;
   }
+  if (a.startsWith('al') || a.startsWith('dist')) alignItems(items, a);
   if (a === 'front' || a === 'back') {
     const rest = state.items.filter(it => !items.includes(it));
     state.items = a === 'front' ? [...rest, ...items] : [...items, ...rest];
