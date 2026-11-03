@@ -14,6 +14,7 @@ On the **Stages & canvas** tab, choose nested "cans" (rounded or square), horizo
 | Action | How |
 | --- | --- |
 | Add a part | Click or drag it from the palette |
+| Add a chip image | Drop an image file onto an image box, or anywhere on the canvas to make a new one |
 | Draw a wire | Click a port (blue dot) or press **W**; click to add bends; finish on a port, by double-clicking, or with **Enter**. **Alt** allows diagonal segments |
 | Edit a wire | Double-click it to add a bend; double-click a bend to remove it; drag a bend; drop an end onto a port to attach it |
 | Rotate / mirror | **R** / **Shift+R**, **H**, **V** |
@@ -21,6 +22,8 @@ On the **Stages & canvas** tab, choose nested "cans" (rounded or square), horizo
 | Duplicate / copy / paste | **Ctrl+D**, **Ctrl+C**, **Ctrl+V** |
 | Undo / redo | **Ctrl+Z**, **Ctrl+Y** |
 | Zoom | **Ctrl+wheel** or the toolbar buttons |
+
+New visitors start from a clean layout (fridge stages plus a chip image box); **Example** loads a full sample diagram and **New** returns to the clean layout.
 
 **Save** / **Open** use a JSON file that includes any embedded images. **Export SVG** (vector, editable in Inkscape/Illustrator) and **Export PNG** (3× resolution) can crop to the drawing. Work also autosaves in the browser.
 

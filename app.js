@@ -120,7 +120,7 @@ const TYPES = {
       const url = it.src && (live ? liveUrl(it.src) : state.assets[it.src]);
       if (url) return `<image x="${-it.w / 2}" y="${-it.h / 2}" width="${it.w}" height="${it.h}" href="${url}" xlink:href="${url}" preserveAspectRatio="none" opacity="${it.opacity}"/>`;
       return `<rect x="${-it.w / 2}" y="${-it.h / 2}" width="${it.w}" height="${it.h}" fill="#f4f6fa" stroke="#9aa3ad" stroke-dasharray="6 4"/>` +
-        `<text text-anchor="middle" dominant-baseline="central" font-size="13" fill="#6b7480">Choose an image →</text>`;
+        `<text text-anchor="middle" dominant-baseline="central" font-size="13" fill="#6b7480">Drop chip image here</text>`;
     },
   },
   text: {
@@ -470,8 +470,8 @@ function bindFields(root, attr, apply) {
   });
 }
 
-function loadImage(file) {
-  if (!file) return;
+function loadImage(file, targets = selItems().filter(it => it.type === 'image')) {
+  if (!file || !file.type.startsWith('image/')) return;
   const rd = new FileReader();
   rd.onload = () => {
     const key = 'a' + Date.now().toString(36);
@@ -479,7 +479,7 @@ function loadImage(file) {
     const im = new Image();
     im.onload = () => {
       pushHistory();
-      for (const it of selItems()) if (it.type === 'image') { it.src = key; it.h = Math.round(it.w * im.naturalHeight / im.naturalWidth); }
+      for (const it of targets) { it.src = key; it.h = Math.round(it.w * im.naturalHeight / im.naturalWidth); }
       drawProps(); draw();
     };
     im.src = rd.result;
@@ -775,8 +775,15 @@ PRESETS.forEach((p, i) => {
 });
 svg.addEventListener('dragover', e => e.preventDefault());
 svg.addEventListener('drop', e => {
-  const i = e.dataTransfer.getData('text/preset'); if (i === '') return;
-  e.preventDefault(); const [x, y] = pt(e); addPreset(+i, x, y);
+  e.preventDefault();
+  const [x, y] = pt(e), file = e.dataTransfer.files[0];
+  if (file) {  // image file: fill the image box it lands on, or add a new one there
+    const el = e.target.closest('[data-item]'), hit = el && byId(+el.dataset.item);
+    let it = hit && hit.type === 'image' ? hit : null;
+    if (!it) { it = makeItem(PRESETS.findIndex(p => p[1] === 'image'), x, y, state.nextId++); state.items.push(it); }
+    sel = ['i' + it.id]; loadImage(file, [it]); return;
+  }
+  const i = e.dataTransfer.getData('text/preset'); if (i !== '') addPreset(+i, x, y);
 });
 
 // ---------------------------------------------------------------- tabs, zoom, files
@@ -827,14 +834,21 @@ $('fileOpen').onchange = async e => {
   catch (err) { alert('Could not read that file: ' + err.message); }
   e.target.value = '';
 };
-$('bNew').onclick = () => { if (!confirm('Start a new, empty diagram?')) return; pushHistory(); state = freshState(); sel = []; afterLoad(); };
+$('bNew').onclick = () => { if (!confirm('Start a new diagram?')) return; pushHistory(); buildStarter(); sel = []; afterLoad(); };
 $('bExample').onclick = () => { pushHistory(); buildExample(); sel = []; afterLoad(); };
 $('bWire').onclick = () => setWireMode(!wireMode);
 $('bUndo').onclick = undo; $('bRedo').onclick = redo;
 $('bDel').onclick = deleteSel;
 $('bDup').onclick = () => paste(copySel());
 
-// ---------------------------------------------------------------- example diagram
+// ---------------------------------------------------------------- starter & example diagrams
+
+// Clean layout new visitors start from: the fridge stages and a chip image placeholder.
+function buildStarter() {
+  state = freshState();
+  const S = state.stages, it = makeItem(PRESETS.findIndex(p => p[1] === 'image'), S.x + S.w / 2, 420, state.nextId++);
+  state.items.push(it);
+}
 
 function buildExample() {
   state = freshState();
@@ -871,6 +885,6 @@ function buildExample() {
 // ---------------------------------------------------------------- boot
 
 setInterval(() => { try { localStorage.setItem('fridgeWiring.v3', JSON.stringify(state)); } catch {} }, 3000);
-try { const s = localStorage.getItem('fridgeWiring.v3'); if (s) state = normalize(JSON.parse(s)); else buildExample(); }
-catch { buildExample(); }
+try { const s = localStorage.getItem('fridgeWiring.v3'); if (s) state = normalize(JSON.parse(s)); else buildStarter(); }
+catch { buildStarter(); }
 syncStagePanel(); drawProps(); draw();
