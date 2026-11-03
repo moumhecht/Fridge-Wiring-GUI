@@ -24,5 +24,4 @@ On the **Stages & canvas** tab, choose nested "cans" (rounded or square), horizo
 
 **Save** / **Open** use a JSON file that includes any embedded images. **Export SVG** (vector, editable in Inkscape/Illustrator) and **Export PNG** (3× resolution) can crop to the drawing. Work also autosaves in the browser.
 
-## Hosting on GitHub Pages
-Push to GitHub, then go to *Settings → Pages → Deploy from a branch → `main` / root*.
+
