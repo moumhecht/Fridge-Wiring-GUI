@@ -44,10 +44,11 @@ const TYPES = {
   box: {
     name: 'Box',
     defaults: { w: 60, h: 28, r: 6, fill: '#ffffff', noFill: false, stroke: INK, strokeWidth: 1.5,
-                text: '', textColor: INK, fontSize: 12, bold: false, align: 'middle', upright: false },
+                text: '', textColor: INK, fontSize: 12, bold: false, align: 'middle', valign: 'middle', upright: false },
     ports: it => [[-it.w / 2, 0], [it.w / 2, 0], [0, -it.h / 2], [0, it.h / 2]],
     size: it => [it.w, it.h],
-    textOff: it => it.align === 'start' ? [-it.w / 2 + 8, 0] : [0, 0],
+    textOff: it => [it.align === 'start' ? -it.w / 2 + 8 : 0,
+      it.valign === 'top' ? -it.h / 2 + 6 + String(it.text).split('\n').length * it.fontSize * 0.6 : 0],
     draw: it => `<rect x="${-it.w / 2}" y="${-it.h / 2}" width="${it.w}" height="${it.h}" rx="${it.r}" ${fillAttr(it)} stroke="${it.stroke}" stroke-width="${it.strokeWidth}"/>`,
   },
   circulator: {
@@ -136,7 +137,6 @@ const TYPES = {
 // Palette entries: [name, type, type-prop overrides, common overrides]
 const PRESETS = [
   ['Text box', 'box', {}],
-  ['Box / device', 'box', { w: 100, h: 60, r: 4, fill: '#d3d3d3', stroke: '#444444', text: 'Device', textColor: INK, fontSize: 14 }],
   ['2-port circulator', 'circ2', {}],
   ['3-port circulator', 'circ3', {}],
   ['Double-junction circ.', 'djcirc', {}],
@@ -145,6 +145,7 @@ const PRESETS = [
   ['HEMT', 'amp', { size: 56, text: 'HEMT', fontSize: 11 }, { rot: -90 }],
   ['Amplifier', 'amp', { size: 24 }],
   ['50 Ω termination', 'term', {}],
+  ['Box / device', 'box', { w: 100, h: 60, r: 4, fill: '#d3d3d3', stroke: '#444444', text: 'Device', textColor: INK, fontSize: 14, valign: 'top' }],
   ['Image (chip)', 'image', {}],
   ['Text', 'text', {}],
 ];
@@ -377,6 +378,7 @@ const FIELDS = {
   w: ['Width', 'num'], h: ['Height', 'num'], r: ['Radius', 'num'], size: ['Size', 'num'],
   text: ['Text (inside)', 'area'], fontSize: ['Font size', 'num'], textColor: ['Text color', 'color'],
   align: ['Text align', 'sel', [['middle', 'Center'], ['start', 'Left']]],
+  valign: ['Text position', 'sel', [['middle', 'Middle'], ['top', 'Top']]],
   bold: ['Bold', 'bool'], upright: ['Keep text horizontal', 'bool'],
   fill: ['Fill', 'color'], noFill: ['No fill', 'bool'], stroke: ['Outline', 'color'], strokeWidth: ['Outline width', 'num'],
   src: ['Image file', 'img'], opacity: ['Opacity (0–1)', 'num'],
